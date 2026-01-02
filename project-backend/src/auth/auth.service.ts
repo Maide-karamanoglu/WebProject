@@ -2,6 +2,7 @@ import { Injectable, UnauthorizedException, ConflictException } from '@nestjs/co
 import { JwtService } from '@nestjs/jwt';
 import * as bcrypt from 'bcrypt';
 import { UsersService } from '../users/users.service';
+import { RolesService } from '../roles/roles.service';
 import { RegisterDto } from './dto/register.dto';
 import { LoginDto } from './dto/login.dto';
 
@@ -9,6 +10,7 @@ import { LoginDto } from './dto/login.dto';
 export class AuthService {
     constructor(
         private usersService: UsersService,
+        private rolesService: RolesService,
         private jwtService: JwtService,
     ) { }
 
@@ -19,18 +21,25 @@ export class AuthService {
             throw new ConflictException('User with this email already exists');
         }
 
+        // Get default student role
+        const studentRole = await this.rolesService.findByName('student');
+        if (!studentRole) {
+            throw new Error('Default student role not found. Please run database seeder.');
+        }
+
         // Hash password
         const saltRounds = 10;
         const hashedPassword = await bcrypt.hash(registerDto.password, saltRounds);
 
-        // Create user
+        // Create user with student role
         const user = await this.usersService.create({
             ...registerDto,
             password: hashedPassword,
+            roleId: studentRole.id,
         });
 
-        // Generate token
-        const payload = { sub: user.id, email: user.email, role: user.role };
+        // Generate token with role name
+        const payload = { sub: user.id, email: user.email, roleName: user.role?.name || 'student' };
 
         return {
             user: {
@@ -56,7 +65,8 @@ export class AuthService {
             throw new UnauthorizedException('Invalid credentials');
         }
 
-        const payload = { sub: user.id, email: user.email, role: user.role };
+        // Generate token with role name
+        const payload = { sub: user.id, email: user.email, roleName: user.role?.name || 'student' };
 
         return {
             user: {

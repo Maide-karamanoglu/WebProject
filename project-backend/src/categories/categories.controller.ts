@@ -1,11 +1,11 @@
-import { Controller, Get, Post, Body, Param, Delete, UseGuards } from '@nestjs/common';
+import { Controller, Get, Post, Body, Param, Delete, Patch, UseGuards } from '@nestjs/common';
 import { ApiTags, ApiOperation, ApiBearerAuth } from '@nestjs/swagger';
 import { AuthGuard } from '@nestjs/passport';
 import { CategoriesService } from './categories.service';
 import { CreateCategoryDto } from './dto/create-category.dto';
+import { UpdateCategoryDto } from './dto/update-category.dto';
 import { RolesGuard } from '../common/guards/roles.guard';
 import { Roles } from '../common/decorators/roles.decorator';
-import { Role } from '../common/enums/role.enum';
 
 @ApiTags('categories')
 @Controller('categories')
@@ -14,7 +14,7 @@ export class CategoriesController {
 
     @Post()
     @UseGuards(AuthGuard('jwt'), RolesGuard)
-    @Roles(Role.ADMIN)
+    @Roles('admin')
     @ApiBearerAuth()
     @ApiOperation({ summary: 'Create a new category (Admin only)' })
     create(@Body() createCategoryDto: CreateCategoryDto) {
@@ -33,9 +33,18 @@ export class CategoriesController {
         return this.categoriesService.findOne(id);
     }
 
+    @Patch(':id')
+    @UseGuards(AuthGuard('jwt'), RolesGuard)
+    @Roles('admin')
+    @ApiBearerAuth()
+    @ApiOperation({ summary: 'Update category (Admin only)' })
+    update(@Param('id') id: string, @Body() updateCategoryDto: UpdateCategoryDto) {
+        return this.categoriesService.update(id, updateCategoryDto);
+    }
+
     @Delete(':id')
     @UseGuards(AuthGuard('jwt'), RolesGuard)
-    @Roles(Role.ADMIN)
+    @Roles('admin')
     @ApiBearerAuth()
     @ApiOperation({ summary: 'Delete category (Admin only)' })
     remove(@Param('id') id: string) {

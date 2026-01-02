@@ -17,6 +17,11 @@ export class CreateCourseDto {
     @IsNumber()
     price?: number;
 
+    @ApiPropertyOptional({ example: '/uploads/courses/image.jpg' })
+    @IsOptional()
+    @IsString()
+    imageUrl?: string;
+
     @ApiPropertyOptional({ type: [String], example: ['category-uuid-1', 'category-uuid-2'] })
     @IsOptional()
     @IsArray()

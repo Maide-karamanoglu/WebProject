@@ -3,6 +3,7 @@ import { InjectRepository } from '@nestjs/typeorm';
 import { Repository } from 'typeorm';
 import { Lesson } from './entities/lesson.entity';
 import { CreateLessonDto } from './dto/create-lesson.dto';
+import { UpdateLessonDto } from './dto/update-lesson.dto';
 import { Course } from '../courses/entities/course.entity';
 
 @Injectable()
@@ -52,6 +53,26 @@ export class LessonsService {
         }
 
         return lesson;
+    }
+
+    async update(id: string, updateLessonDto: UpdateLessonDto): Promise<Lesson> {
+        const lesson = await this.findOne(id);
+
+        const { courseId, ...lessonData } = updateLessonDto;
+
+        // Update basic fields
+        Object.assign(lesson, lessonData);
+
+        // Update course if provided
+        if (courseId) {
+            const course = await this.coursesRepository.findOne({ where: { id: courseId } });
+            if (!course) {
+                throw new NotFoundException(`Course with ID ${courseId} not found`);
+            }
+            lesson.course = course;
+        }
+
+        return this.lessonsRepository.save(lesson);
     }
 
     async remove(id: string): Promise<void> {

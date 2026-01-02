@@ -1,11 +1,31 @@
-import { Controller, Get, Post, Body, Param, Delete, UseGuards, Request } from '@nestjs/common';
-import { ApiTags, ApiOperation, ApiBearerAuth } from '@nestjs/swagger';
+import {
+    Controller,
+    Get,
+    Post,
+    Body,
+    Param,
+    Delete,
+    Patch,
+    UseGuards,
+    Request,
+    UseInterceptors,
+    UploadedFile,
+    ParseFilePipe,
+    MaxFileSizeValidator,
+    FileTypeValidator,
+} from '@nestjs/common';
+import { FileInterceptor } from '@nestjs/platform-express';
+import { ApiTags, ApiOperation, ApiBearerAuth, ApiConsumes, ApiBody } from '@nestjs/swagger';
 import { AuthGuard } from '@nestjs/passport';
+import { diskStorage } from 'multer';
+import { extname } from 'path';
+import { v4 as uuidv4 } from 'uuid';
 import { CoursesService } from './courses.service';
 import { CreateCourseDto } from './dto/create-course.dto';
+import { UpdateCourseDto } from './dto/update-course.dto';
 import { RolesGuard } from '../common/guards/roles.guard';
+import { CourseOwnerGuard } from '../common/guards/course-owner.guard';
 import { Roles } from '../common/decorators/roles.decorator';
-import { Role } from '../common/enums/role.enum';
 
 @ApiTags('courses')
 @Controller('courses')
@@ -14,7 +34,7 @@ export class CoursesController {
 
     @Post()
     @UseGuards(AuthGuard('jwt'), RolesGuard)
-    @Roles(Role.INSTRUCTOR, Role.ADMIN)
+    @Roles('instructor', 'admin')
     @ApiBearerAuth()
     @ApiOperation({ summary: 'Create a new course (Instructor/Admin only)' })
     create(@Body() createCourseDto: CreateCourseDto, @Request() req) {
@@ -33,6 +53,60 @@ export class CoursesController {
         return this.coursesService.findOne(id);
     }
 
+    @Patch(':id')
+    @UseGuards(AuthGuard('jwt'), RolesGuard, CourseOwnerGuard)
+    @Roles('instructor', 'admin')
+    @ApiBearerAuth()
+    @ApiOperation({ summary: 'Update course (Owner/Admin only)' })
+    update(@Param('id') id: string, @Body() updateCourseDto: UpdateCourseDto) {
+        return this.coursesService.update(id, updateCourseDto);
+    }
+
+    @Post(':id/upload-image')
+    @UseGuards(AuthGuard('jwt'), RolesGuard, CourseOwnerGuard)
+    @Roles('instructor', 'admin')
+    @ApiBearerAuth()
+    @ApiOperation({ summary: 'Upload course cover image (Owner/Admin only)' })
+    @ApiConsumes('multipart/form-data')
+    @ApiBody({
+        schema: {
+            type: 'object',
+            properties: {
+                file: {
+                    type: 'string',
+                    format: 'binary',
+                },
+            },
+        },
+    })
+    @UseInterceptors(
+        FileInterceptor('file', {
+            storage: diskStorage({
+                destination: './uploads/courses',
+                filename: (req, file, callback) => {
+                    const uniqueSuffix = uuidv4();
+                    const ext = extname(file.originalname);
+                    callback(null, `${uniqueSuffix}${ext}`);
+                },
+            }),
+        }),
+    )
+    async uploadImage(
+        @Param('id') id: string,
+        @UploadedFile(
+            new ParseFilePipe({
+                validators: [
+                    new MaxFileSizeValidator({ maxSize: 5 * 1024 * 1024 }), // 5MB
+                    new FileTypeValidator({ fileType: /(jpg|jpeg|png|gif|webp)$/ }),
+                ],
+            }),
+        )
+        file: Express.Multer.File,
+    ) {
+        const imageUrl = `/uploads/courses/${file.filename}`;
+        return this.coursesService.update(id, { imageUrl });
+    }
+
     @Post(':id/enroll')
     @UseGuards(AuthGuard('jwt'))
     @ApiBearerAuth()
@@ -41,11 +115,19 @@ export class CoursesController {
         return this.coursesService.enrollStudent(id, req.user);
     }
 
-    @Delete(':id')
-    @UseGuards(AuthGuard('jwt'), RolesGuard)
-    @Roles(Role.INSTRUCTOR, Role.ADMIN)
+    @Delete(':id/enroll')
+    @UseGuards(AuthGuard('jwt'))
     @ApiBearerAuth()
-    @ApiOperation({ summary: 'Delete course (Instructor/Admin only)' })
+    @ApiOperation({ summary: 'Unenroll from a course' })
+    unenroll(@Param('id') id: string, @Request() req) {
+        return this.coursesService.unenrollStudent(id, req.user);
+    }
+
+    @Delete(':id')
+    @UseGuards(AuthGuard('jwt'), RolesGuard, CourseOwnerGuard)
+    @Roles('instructor', 'admin')
+    @ApiBearerAuth()
+    @ApiOperation({ summary: 'Delete course (Owner/Admin only)' })
     remove(@Param('id') id: string) {
         return this.coursesService.remove(id);
     }

@@ -5,9 +5,11 @@ import {
     CreateDateColumn,
     OneToMany,
     ManyToMany,
+    ManyToOne,
     JoinTable,
+    JoinColumn,
 } from 'typeorm';
-import { Role } from '../../common/enums/role.enum';
+import { Role } from '../../roles/entities/role.entity';
 import { Course } from '../../courses/entities/course.entity';
 
 @Entity('users')
@@ -24,11 +26,13 @@ export class User {
     @Column()
     fullName: string;
 
-    @Column({
-        type: 'text',
-        default: Role.STUDENT,
-    })
+    // Many-to-One: Many users can have the same role
+    @ManyToOne(() => Role, (role) => role.users, { eager: true })
+    @JoinColumn({ name: 'roleId' })
     role: Role;
+
+    @Column({ nullable: true })
+    roleId: number;
 
     @CreateDateColumn()
     createdAt: Date;
