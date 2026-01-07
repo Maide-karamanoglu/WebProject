@@ -1,4 +1,4 @@
-import { Injectable, NotFoundException } from '@nestjs/common';
+import { Injectable, NotFoundException, BadRequestException } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
 import { Repository, In } from 'typeorm';
 import { Course } from './entities/course.entity';
@@ -14,6 +14,8 @@ export class CoursesService {
         private coursesRepository: Repository<Course>,
         @InjectRepository(Category)
         private categoriesRepository: Repository<Category>,
+        @InjectRepository(User)
+        private usersRepository: Repository<User>,
     ) { }
 
     async create(createCourseDto: CreateCourseDto, instructor: User): Promise<Course> {
@@ -35,14 +37,14 @@ export class CoursesService {
 
     async findAll(): Promise<Course[]> {
         return this.coursesRepository.find({
-            relations: ['instructor', 'categories', 'lessons'],
+            relations: ['instructor', 'instructor.role', 'categories', 'lessons', 'enrolledStudents'],
         });
     }
 
     async findOne(id: string): Promise<Course> {
         const course = await this.coursesRepository.findOne({
             where: { id },
-            relations: ['instructor', 'categories', 'lessons', 'enrolledStudents'],
+            relations: ['instructor', 'instructor.role', 'categories', 'lessons', 'enrolledStudents'],
         });
 
         if (!course) {
@@ -74,31 +76,48 @@ export class CoursesService {
         return this.coursesRepository.save(course);
     }
 
-    async enrollStudent(courseId: string, student: User): Promise<Course> {
+    async enrollStudent(courseId: string, jwtPayload: { sub: string }): Promise<Course> {
         const course = await this.findOne(courseId);
+
+        // Get the actual user from database
+        const userId = jwtPayload.sub;
+        const student = await this.usersRepository.findOne({ where: { id: userId } });
+
+        if (!student) {
+            throw new NotFoundException('User not found');
+        }
+
+        // Check if already enrolled
+        const isAlreadyEnrolled = course.enrolledStudents?.some(s => s.id === userId);
+        if (isAlreadyEnrolled) {
+            throw new BadRequestException('You are already enrolled in this course');
+        }
+
+        // Check if user is the instructor
+        if (course.instructor?.id === userId) {
+            throw new BadRequestException('Instructors cannot enroll in their own courses');
+        }
 
         if (!course.enrolledStudents) {
             course.enrolledStudents = [];
         }
 
-        const isAlreadyEnrolled = course.enrolledStudents.some(s => s.id === student.id);
-        if (!isAlreadyEnrolled) {
-            course.enrolledStudents.push(student);
-            await this.coursesRepository.save(course);
-        }
+        course.enrolledStudents.push(student);
+        await this.coursesRepository.save(course);
 
-        return course;
+        return this.findOne(courseId); // Return with fresh relations
     }
 
-    async unenrollStudent(courseId: string, student: User): Promise<{ message: string }> {
+    async unenrollStudent(courseId: string, jwtPayload: { sub: string }): Promise<{ message: string }> {
         const course = await this.findOne(courseId);
 
-        if (!course.enrolledStudents) {
+        const userId = jwtPayload.sub;
+
+        if (!course.enrolledStudents || course.enrolledStudents.length === 0) {
             throw new NotFoundException('You are not enrolled in this course');
         }
 
-        const studentId = student.id || (student as any).sub;
-        const studentIndex = course.enrolledStudents.findIndex(s => s.id === studentId);
+        const studentIndex = course.enrolledStudents.findIndex(s => s.id === userId);
         if (studentIndex === -1) {
             throw new NotFoundException('You are not enrolled in this course');
         }

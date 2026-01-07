@@ -10,9 +10,7 @@ import {
     Request,
     UseInterceptors,
     UploadedFile,
-    ParseFilePipe,
-    MaxFileSizeValidator,
-    FileTypeValidator,
+    BadRequestException,
 } from '@nestjs/common';
 import { FileInterceptor } from '@nestjs/platform-express';
 import { ApiTags, ApiOperation, ApiBearerAuth, ApiConsumes, ApiBody } from '@nestjs/swagger';
@@ -89,20 +87,26 @@ export class CoursesController {
                     callback(null, `${uniqueSuffix}${ext}`);
                 },
             }),
+            fileFilter: (req, file, callback) => {
+                const allowedMimeTypes = ['image/jpeg', 'image/png', 'image/gif', 'image/webp'];
+                if (allowedMimeTypes.includes(file.mimetype)) {
+                    callback(null, true);
+                } else {
+                    callback(new Error(`Invalid file type. Allowed types: ${allowedMimeTypes.join(', ')}`), false);
+                }
+            },
+            limits: {
+                fileSize: 5 * 1024 * 1024, // 5MB
+            },
         }),
     )
     async uploadImage(
         @Param('id') id: string,
-        @UploadedFile(
-            new ParseFilePipe({
-                validators: [
-                    new MaxFileSizeValidator({ maxSize: 5 * 1024 * 1024 }), // 5MB
-                    new FileTypeValidator({ fileType: /(jpg|jpeg|png|gif|webp)$/ }),
-                ],
-            }),
-        )
-        file: Express.Multer.File,
+        @UploadedFile() file: Express.Multer.File,
     ) {
+        if (!file) {
+            throw new BadRequestException('No file uploaded or invalid file type. Allowed types: jpeg, png, gif, webp');
+        }
         const imageUrl = `/uploads/courses/${file.filename}`;
         return this.coursesService.update(id, { imageUrl });
     }
