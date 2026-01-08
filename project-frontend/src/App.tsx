@@ -13,6 +13,10 @@ import {
   CourseFormPage,
   MyCoursesPage,
   ProfilePage,
+  LessonFormPage,
+  AdminDashboardPage,
+  AdminUsersPage,
+  AdminCategoriesPage,
 } from './pages';
 
 function App() {
@@ -81,12 +85,49 @@ function App() {
               }
             />
 
-            {/* Protected routes - Admin only */}
+            {/* Lesson routes */}
             <Route
-              path="/admin/*"
+              path="/courses/:id/lessons/create"
+              element={
+                <ProtectedRoute allowedRoles={['instructor', 'admin']}>
+                  <LessonFormPage mode="create" />
+                </ProtectedRoute>
+              }
+            />
+
+            <Route
+              path="/courses/:id/lessons/:lessonId/edit"
+              element={
+                <ProtectedRoute allowedRoles={['instructor', 'admin']}>
+                  <LessonFormPage mode="edit" />
+                </ProtectedRoute>
+              }
+            />
+
+            {/* Admin routes */}
+            <Route
+              path="/admin"
               element={
                 <ProtectedRoute allowedRoles={['admin']}>
-                  <div className="text-white">Admin Panel (Coming Soon)</div>
+                  <AdminDashboardPage />
+                </ProtectedRoute>
+              }
+            />
+
+            <Route
+              path="/admin/users"
+              element={
+                <ProtectedRoute allowedRoles={['admin']}>
+                  <AdminUsersPage />
+                </ProtectedRoute>
+              }
+            />
+
+            <Route
+              path="/admin/categories"
+              element={
+                <ProtectedRoute allowedRoles={['admin']}>
+                  <AdminCategoriesPage />
                 </ProtectedRoute>
               }
             />

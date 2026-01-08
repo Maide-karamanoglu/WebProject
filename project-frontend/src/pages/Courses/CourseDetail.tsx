@@ -1,6 +1,6 @@
 import { useEffect, useState } from 'react';
 import { useParams, useNavigate, Link } from 'react-router-dom';
-import { Card, Button, Badge, Alert } from 'flowbite-react';
+import { Button, Badge, Alert } from 'flowbite-react';
 import {
     HiBookOpen,
     HiUser,
@@ -12,6 +12,10 @@ import {
     HiTrash,
     HiCalendar,
     HiLocationMarker,
+    HiArrowLeft,
+    HiAcademicCap,
+    HiClock,
+    HiStar,
 } from 'react-icons/hi';
 import { coursesApi, lessonsApi } from '../../api';
 import { useAuth } from '../../context';
@@ -126,204 +130,297 @@ export default function CourseDetailPage() {
 
     if (loading) {
         return (
-            <div className="text-center text-gray-400 py-20">Loading course...</div>
+            <div className="flex items-center justify-center py-20">
+                <div className="animate-spin rounded-full h-12 w-12 border-t-2 border-b-2 border-indigo-500"></div>
+            </div>
         );
     }
 
     if (!course) {
         return (
             <div className="text-center py-20">
+                <div className="w-24 h-24 mx-auto mb-6 bg-gray-700/50 rounded-full flex items-center justify-center">
+                    <HiBookOpen className="w-12 h-12 text-gray-500" />
+                </div>
                 <h1 className="text-2xl font-bold text-white mb-4">Course Not Found</h1>
+                <p className="text-gray-400 mb-6">The course you're looking for doesn't exist.</p>
                 <Link to="/courses">
-                    <Button color="purple">Back to Courses</Button>
+                    <Button color="purple">Browse Courses</Button>
                 </Link>
             </div>
         );
     }
 
     return (
-        <div className="max-w-5xl mx-auto space-y-6">
+        <div className="max-w-6xl mx-auto">
+            {/* Back Button */}
+            <Button color="gray" size="sm" onClick={() => navigate(-1)} className="mb-6">
+                <HiArrowLeft className="w-4 h-4 mr-2" />
+                Back
+            </Button>
+
             {/* Alerts */}
             {error && (
-                <Alert color="failure" onDismiss={() => setError(null)}>
+                <Alert color="failure" onDismiss={() => setError(null)} className="mb-6">
                     {error}
                 </Alert>
             )}
             {success && (
-                <Alert color="success" onDismiss={() => setSuccess(null)}>
+                <Alert color="success" onDismiss={() => setSuccess(null)} className="mb-6">
                     {success}
                 </Alert>
             )}
 
-            {/* Header Card */}
-            <Card className="bg-gray-800 border-gray-700">
-                <div className="flex flex-col lg:flex-row gap-6">
-                    {/* Course Image */}
-                    <div className="lg:w-1/3">
-                        <div className="h-56 lg:h-full bg-gradient-to-br from-indigo-600 to-purple-600 rounded-lg flex items-center justify-center overflow-hidden">
-                            {course.imageUrl ? (
-                                <img
-                                    src={`http://localhost:3000${course.imageUrl}`}
-                                    alt={course.title}
-                                    className="w-full h-full object-cover"
-                                />
-                            ) : (
-                                <HiBookOpen className="w-20 h-20 text-white/40" />
-                            )}
+            {/* Hero Section */}
+            <div className="relative rounded-2xl overflow-hidden mb-8">
+                {/* Background Image/Gradient */}
+                <div className="absolute inset-0">
+                    {course.imageUrl ? (
+                        <img
+                            src={`http://localhost:3000${course.imageUrl}`}
+                            alt={course.title}
+                            className="w-full h-full object-cover"
+                        />
+                    ) : (
+                        <div className="w-full h-full bg-gradient-to-br from-indigo-600 via-purple-600 to-pink-500" />
+                    )}
+                    <div className="absolute inset-0 bg-gradient-to-t from-gray-900 via-gray-900/80 to-transparent" />
+                </div>
+
+                {/* Content */}
+                <div className="relative p-8 pt-32 lg:pt-40">
+                    {/* Categories */}
+                    {course.categories && course.categories.length > 0 && (
+                        <div className="flex flex-wrap gap-2 mb-4">
+                            {course.categories.map((cat) => (
+                                <span
+                                    key={cat.id}
+                                    className="px-3 py-1 bg-white/10 backdrop-blur-sm text-white text-sm rounded-full border border-white/20"
+                                >
+                                    {cat.name}
+                                </span>
+                            ))}
+                        </div>
+                    )}
+
+                    <h1 className="text-4xl lg:text-5xl font-bold text-white mb-4 leading-tight">
+                        {course.title}
+                    </h1>
+
+                    <p className="text-gray-300 text-lg mb-6 max-w-3xl">
+                        {course.description || 'No description provided.'}
+                    </p>
+
+                    {/* Instructor */}
+                    <div className="flex items-center gap-3 mb-8">
+                        <div className="w-12 h-12 bg-gradient-to-br from-indigo-400 to-purple-400 rounded-full flex items-center justify-center text-white font-bold text-lg">
+                            {course.instructor?.fullName?.charAt(0).toUpperCase()}
+                        </div>
+                        <div>
+                            <p className="text-white font-medium">{course.instructor?.fullName}</p>
+                            <p className="text-gray-400 text-sm">Instructor</p>
                         </div>
                     </div>
 
-                    {/* Course Info */}
-                    <div className="lg:w-2/3 flex flex-col">
-                        {/* Categories */}
-                        {course.categories && course.categories.length > 0 && (
-                            <div className="flex flex-wrap gap-2 mb-3">
-                                {course.categories.map((cat) => (
-                                    <Badge key={cat.id} color="purple">
-                                        {cat.name}
-                                    </Badge>
-                                ))}
-                            </div>
+                    {/* Stats Row */}
+                    <div className="flex flex-wrap items-center gap-6 mb-8">
+                        <div className="flex items-center gap-2 bg-black/30 backdrop-blur-sm px-4 py-2 rounded-full">
+                            <HiCurrencyDollar className="w-5 h-5 text-green-400" />
+                            <span className="text-xl font-bold text-white">
+                                {course.price > 0 ? `$${course.price}` : 'Free'}
+                            </span>
+                        </div>
+                        <div className="flex items-center gap-2 text-gray-300">
+                            <HiUserGroup className="w-5 h-5 text-indigo-400" />
+                            <span>{course.enrolledStudents?.length || 0} students</span>
+                        </div>
+                        <div className="flex items-center gap-2 text-gray-300">
+                            <HiBookOpen className="w-5 h-5 text-purple-400" />
+                            <span>{lessons.length} lessons</span>
+                        </div>
+                        <div className="flex items-center gap-2 text-gray-300">
+                            <HiStar className="w-5 h-5 text-yellow-400" />
+                            <span>4.8 rating</span>
+                        </div>
+                    </div>
+
+                    {/* Action Buttons */}
+                    <div className="flex flex-wrap gap-4">
+                        {user && !isOwner && (
+                            <button
+                                onClick={handleEnroll}
+                                disabled={enrolling}
+                                className={`px-8 py-3 rounded-xl font-semibold text-white transition-all transform hover:scale-105 ${isEnrolled
+                                        ? 'bg-gray-600 hover:bg-gray-500'
+                                        : 'bg-gradient-to-r from-indigo-500 to-purple-500 hover:from-indigo-600 hover:to-purple-600 shadow-lg shadow-indigo-500/25'
+                                    }`}
+                            >
+                                {enrolling ? (
+                                    'Processing...'
+                                ) : isEnrolled ? (
+                                    <span className="flex items-center gap-2">
+                                        <HiX className="w-5 h-5" />
+                                        Unenroll
+                                    </span>
+                                ) : (
+                                    <span className="flex items-center gap-2">
+                                        <HiCheck className="w-5 h-5" />
+                                        Enroll Now
+                                    </span>
+                                )}
+                            </button>
                         )}
 
-                        <h1 className="text-3xl font-bold text-white mb-3">{course.title}</h1>
-
-                        <p className="text-gray-400 mb-4 flex-1">
-                            {course.description || 'No description provided.'}
-                        </p>
-
-                        {/* Instructor */}
-                        <div className="flex items-center gap-2 text-gray-300 mb-4">
-                            <HiUser className="w-5 h-5 text-indigo-400" />
-                            <span>Instructor: <strong>{course.instructor?.fullName}</strong></span>
-                        </div>
-
-                        {/* Stats */}
-                        <div className="flex flex-wrap items-center gap-6 mb-6">
-                            <div className="flex items-center gap-2">
-                                <HiCurrencyDollar className="w-6 h-6 text-green-400" />
-                                <span className="text-2xl font-bold text-white">
-                                    {course.price > 0 ? `$${course.price}` : 'Free'}
-                                </span>
-                            </div>
-                            <div className="flex items-center gap-2 text-gray-400">
-                                <HiUserGroup className="w-5 h-5" />
-                                <span>{course.enrolledStudents?.length || 0} enrolled</span>
-                            </div>
-                            <div className="flex items-center gap-2 text-gray-400">
-                                <HiCalendar className="w-5 h-5" />
-                                <span>{lessons.length} lessons</span>
-                            </div>
-                        </div>
-
-                        {/* Actions */}
-                        <div className="flex flex-wrap gap-3">
-                            {user && !isOwner && (
-                                <Button
-                                    color={isEnrolled ? 'gray' : 'purple'}
-                                    onClick={handleEnroll}
-                                    disabled={enrolling}
+                        {canEdit && (
+                            <>
+                                <Link to={`/courses/${course.id}/edit`}>
+                                    <button className="px-6 py-3 bg-white/10 backdrop-blur-sm text-white rounded-xl font-medium border border-white/20 hover:bg-white/20 transition flex items-center gap-2">
+                                        <HiPencil className="w-5 h-5" />
+                                        Edit Course
+                                    </button>
+                                </Link>
+                                <button
+                                    onClick={handleDelete}
+                                    className="px-6 py-3 bg-red-500/20 text-red-400 rounded-xl font-medium border border-red-500/30 hover:bg-red-500/30 transition flex items-center gap-2"
                                 >
-                                    {enrolling ? (
-                                        'Processing...'
-                                    ) : isEnrolled ? (
-                                        <>
-                                            <HiX className="w-4 h-4 mr-2" />
-                                            Unenroll
-                                        </>
-                                    ) : (
-                                        <>
-                                            <HiCheck className="w-4 h-4 mr-2" />
-                                            Enroll Now
-                                        </>
-                                    )}
-                                </Button>
-                            )}
-
-                            {canEdit && (
-                                <>
-                                    <Link to={`/courses/${course.id}/edit`}>
-                                        <Button color="gray">
-                                            <HiPencil className="w-4 h-4 mr-2" />
-                                            Edit
-                                        </Button>
-                                    </Link>
-                                    <Button color="failure" onClick={handleDelete}>
-                                        <HiTrash className="w-4 h-4 mr-2" />
-                                        Delete
-                                    </Button>
-                                </>
-                            )}
-                        </div>
+                                    <HiTrash className="w-5 h-5" />
+                                    Delete
+                                </button>
+                            </>
+                        )}
                     </div>
                 </div>
-            </Card>
+            </div>
 
-            {/* Lessons Section */}
-            <Card className="bg-gray-800 border-gray-700">
-                <div className="flex items-center justify-between mb-4">
-                    <h2 className="text-xl font-bold text-white">Lesson Schedule</h2>
-                    {canEdit && (
-                        <Link to={`/courses/${course.id}/lessons/create`}>
-                            <Button size="sm" color="purple">
-                                Add Lesson
-                            </Button>
-                        </Link>
+            {/* Content Grid */}
+            <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
+                {/* Lessons Column */}
+                <div className="lg:col-span-2">
+                    <div className="bg-gray-800/50 backdrop-blur-sm rounded-2xl border border-gray-700/50 p-6">
+                        <div className="flex items-center justify-between mb-6">
+                            <div className="flex items-center gap-3">
+                                <div className="p-2 bg-indigo-500/20 rounded-lg">
+                                    <HiAcademicCap className="w-6 h-6 text-indigo-400" />
+                                </div>
+                                <h2 className="text-xl font-bold text-white">Course Curriculum</h2>
+                            </div>
+                            {canEdit && (
+                                <Link to={`/courses/${course.id}/lessons/create`}>
+                                    <Button size="sm" gradientDuoTone="purpleToBlue">
+                                        + Add Lesson
+                                    </Button>
+                                </Link>
+                            )}
+                        </div>
+
+                        {lessons.length === 0 ? (
+                            <div className="text-center py-12">
+                                <div className="w-16 h-16 mx-auto mb-4 bg-gray-700/50 rounded-full flex items-center justify-center">
+                                    <HiBookOpen className="w-8 h-8 text-gray-500" />
+                                </div>
+                                <p className="text-gray-400">No lessons scheduled yet.</p>
+                            </div>
+                        ) : (
+                            <div className="space-y-3">
+                                {lessons
+                                    .sort((a, b) => a.order - b.order)
+                                    .map((lesson, index) => (
+                                        <div
+                                            key={lesson.id}
+                                            className="group flex items-center gap-4 p-4 bg-gray-700/30 rounded-xl hover:bg-gray-700/50 transition-all border border-transparent hover:border-gray-600/50"
+                                        >
+                                            <div className="w-12 h-12 bg-gradient-to-br from-indigo-500/20 to-purple-500/20 rounded-xl flex items-center justify-center text-indigo-400 font-bold text-lg border border-indigo-500/20">
+                                                {index + 1}
+                                            </div>
+                                            <div className="flex-1">
+                                                <h3 className="text-white font-medium group-hover:text-indigo-300 transition">
+                                                    {lesson.title}
+                                                </h3>
+                                                {lesson.content && (
+                                                    <p className="text-gray-400 text-sm flex items-center gap-2 mt-1">
+                                                        <HiLocationMarker className="w-4 h-4 text-gray-500" />
+                                                        {lesson.content}
+                                                    </p>
+                                                )}
+                                            </div>
+                                            {canEdit && (
+                                                <Link to={`/courses/${course.id}/lessons/${lesson.id}/edit`}>
+                                                    <button className="opacity-0 group-hover:opacity-100 p-2 text-gray-400 hover:text-white hover:bg-gray-600 rounded-lg transition">
+                                                        <HiPencil className="w-4 h-4" />
+                                                    </button>
+                                                </Link>
+                                            )}
+                                        </div>
+                                    ))}
+                            </div>
+                        )}
+                    </div>
+                </div>
+
+                {/* Sidebar */}
+                <div className="space-y-6">
+                    {/* Course Info Card */}
+                    <div className="bg-gray-800/50 backdrop-blur-sm rounded-2xl border border-gray-700/50 p-6">
+                        <h3 className="text-lg font-semibold text-white mb-4">Course Details</h3>
+                        <div className="space-y-4">
+                            <div className="flex items-center gap-3 text-gray-300">
+                                <div className="p-2 bg-gray-700/50 rounded-lg">
+                                    <HiClock className="w-5 h-5 text-gray-400" />
+                                </div>
+                                <div>
+                                    <p className="text-gray-400 text-sm">Duration</p>
+                                    <p className="text-white">{lessons.length} lessons</p>
+                                </div>
+                            </div>
+                            <div className="flex items-center gap-3 text-gray-300">
+                                <div className="p-2 bg-gray-700/50 rounded-lg">
+                                    <HiUserGroup className="w-5 h-5 text-gray-400" />
+                                </div>
+                                <div>
+                                    <p className="text-gray-400 text-sm">Enrolled</p>
+                                    <p className="text-white">{course.enrolledStudents?.length || 0} students</p>
+                                </div>
+                            </div>
+                            <div className="flex items-center gap-3 text-gray-300">
+                                <div className="p-2 bg-gray-700/50 rounded-lg">
+                                    <HiCalendar className="w-5 h-5 text-gray-400" />
+                                </div>
+                                <div>
+                                    <p className="text-gray-400 text-sm">Created</p>
+                                    <p className="text-white">
+                                        {new Date(course.createdAt).toLocaleDateString()}
+                                    </p>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+
+                    {/* Enrolled Students (for instructor/admin) */}
+                    {canEdit && course.enrolledStudents && course.enrolledStudents.length > 0 && (
+                        <div className="bg-gray-800/50 backdrop-blur-sm rounded-2xl border border-gray-700/50 p-6">
+                            <div className="flex items-center gap-2 mb-4">
+                                <HiUserGroup className="w-5 h-5 text-purple-400" />
+                                <h3 className="text-lg font-semibold text-white">
+                                    Students ({course.enrolledStudents.length})
+                                </h3>
+                            </div>
+                            <div className="space-y-3 max-h-64 overflow-y-auto">
+                                {course.enrolledStudents.map((student) => (
+                                    <div
+                                        key={student.id}
+                                        className="flex items-center gap-3 p-2 rounded-lg hover:bg-gray-700/30 transition"
+                                    >
+                                        <div className="w-8 h-8 bg-gradient-to-br from-purple-400 to-pink-400 rounded-full flex items-center justify-center text-white text-sm font-medium">
+                                            {student.fullName?.charAt(0).toUpperCase()}
+                                        </div>
+                                        <span className="text-gray-300 text-sm">{student.fullName}</span>
+                                    </div>
+                                ))}
+                            </div>
+                        </div>
                     )}
                 </div>
-
-                {lessons.length === 0 ? (
-                    <p className="text-gray-400 text-center py-8">
-                        No lessons scheduled yet.
-                    </p>
-                ) : (
-                    <div className="space-y-3">
-                        {lessons
-                            .sort((a, b) => a.order - b.order)
-                            .map((lesson, index) => (
-                                <div
-                                    key={lesson.id}
-                                    className="flex items-center gap-4 p-4 bg-gray-700/50 rounded-lg hover:bg-gray-700 transition"
-                                >
-                                    <div className="w-10 h-10 bg-indigo-500/20 rounded-full flex items-center justify-center text-indigo-400 font-bold">
-                                        {index + 1}
-                                    </div>
-                                    <div className="flex-1">
-                                        <h3 className="text-white font-medium">{lesson.title}</h3>
-                                        {lesson.content && (
-                                            <p className="text-gray-400 text-sm flex items-center gap-2">
-                                                <HiLocationMarker className="w-4 h-4" />
-                                                {lesson.content}
-                                            </p>
-                                        )}
-                                    </div>
-                                </div>
-                            ))}
-                    </div>
-                )}
-            </Card>
-
-            {/* Enrolled Students (for instructor/admin) */}
-            {canEdit && course.enrolledStudents && course.enrolledStudents.length > 0 && (
-                <Card className="bg-gray-800 border-gray-700">
-                    <h2 className="text-xl font-bold text-white mb-4">
-                        Enrolled Students ({course.enrolledStudents.length})
-                    </h2>
-                    <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-3">
-                        {course.enrolledStudents.map((student) => (
-                            <div
-                                key={student.id}
-                                className="flex items-center gap-3 p-3 bg-gray-700/50 rounded-lg"
-                            >
-                                <div className="w-10 h-10 bg-purple-500/20 rounded-full flex items-center justify-center">
-                                    <HiUser className="w-5 h-5 text-purple-400" />
-                                </div>
-                                <span className="text-white">{student.fullName}</span>
-                            </div>
-                        ))}
-                    </div>
-                </Card>
-            )}
+            </div>
         </div>
     );
 }

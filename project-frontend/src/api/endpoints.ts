@@ -22,6 +22,7 @@ export const usersApi = {
         api.patch('/users/profile', data),
     updateRole: (userId: string, roleId: number) =>
         api.patch(`/users/${userId}`, { roleId }),
+    delete: (id: string) => api.delete(`/users/${id}`),
 };
 
 // Courses endpoints

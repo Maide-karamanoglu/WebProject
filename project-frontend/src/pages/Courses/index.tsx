@@ -1,7 +1,6 @@
 import { useEffect, useState } from 'react';
 import { Link } from 'react-router-dom';
-import { Card, TextInput, Select, Badge, Button } from 'flowbite-react';
-import { HiSearch, HiBookOpen, HiCurrencyDollar, HiUserGroup } from 'react-icons/hi';
+import { HiSearch, HiBookOpen, HiCurrencyDollar, HiUserGroup, HiStar, HiArrowRight } from 'react-icons/hi';
 import { coursesApi, categoriesApi } from '../../api';
 
 interface Course {
@@ -60,116 +59,168 @@ export default function CoursesListPage() {
     });
 
     return (
-        <div className="space-y-6">
+        <div className="space-y-8">
             {/* Header */}
-            <div className="flex flex-col md:flex-row md:items-center justify-between gap-4">
-                <div>
-                    <h1 className="text-3xl font-bold text-white">Courses</h1>
-                    <p className="text-gray-400">Browse and enroll in available courses</p>
-                </div>
+            <div className="text-center mb-12">
+                <h1 className="text-4xl lg:text-5xl font-bold text-white mb-4">
+                    Explore Our <span className="bg-gradient-to-r from-indigo-400 to-purple-400 bg-clip-text text-transparent">Courses</span>
+                </h1>
+                <p className="text-gray-400 text-lg max-w-2xl mx-auto">
+                    Discover a world of knowledge with our expertly crafted courses
+                </p>
             </div>
 
-            {/* Filters */}
-            <div className="flex flex-col md:flex-row gap-4">
-                <div className="flex-1">
-                    <TextInput
-                        icon={HiSearch}
-                        placeholder="Search courses..."
-                        value={searchTerm}
-                        onChange={(e) => setSearchTerm(e.target.value)}
-                    />
-                </div>
-                <div className="w-full md:w-48">
-                    <Select
-                        value={selectedCategory}
-                        onChange={(e) => setSelectedCategory(e.target.value)}
-                    >
-                        <option value="">All Categories</option>
+            {/* Search & Filter Bar */}
+            <div className="bg-gray-800/50 backdrop-blur-sm rounded-2xl border border-gray-700/50 p-6">
+                <div className="flex flex-col lg:flex-row gap-4">
+                    {/* Search Input */}
+                    <div className="flex-1 relative">
+                        <HiSearch className="absolute left-4 top-1/2 transform -translate-y-1/2 w-5 h-5 text-gray-400" />
+                        <input
+                            type="text"
+                            placeholder="Search courses..."
+                            value={searchTerm}
+                            onChange={(e) => setSearchTerm(e.target.value)}
+                            className="w-full pl-12 pr-4 py-3 bg-gray-700/50 border border-gray-600/50 rounded-xl text-white placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:border-transparent transition"
+                        />
+                    </div>
+
+                    {/* Category Filter Pills */}
+                    <div className="flex flex-wrap gap-2">
+                        <button
+                            onClick={() => setSelectedCategory('')}
+                            className={`px-4 py-2 rounded-xl text-sm font-medium transition-all ${selectedCategory === ''
+                                    ? 'bg-indigo-500 text-white'
+                                    : 'bg-gray-700/50 text-gray-300 hover:bg-gray-600/50'
+                                }`}
+                        >
+                            All
+                        </button>
                         {categories.map((cat) => (
-                            <option key={cat.id} value={cat.id}>
+                            <button
+                                key={cat.id}
+                                onClick={() => setSelectedCategory(cat.id)}
+                                className={`px-4 py-2 rounded-xl text-sm font-medium transition-all ${selectedCategory === cat.id
+                                        ? 'bg-indigo-500 text-white'
+                                        : 'bg-gray-700/50 text-gray-300 hover:bg-gray-600/50'
+                                    }`}
+                            >
                                 {cat.name}
-                            </option>
+                            </button>
                         ))}
-                    </Select>
+                    </div>
+                </div>
+
+                {/* Results Count */}
+                <div className="mt-4 pt-4 border-t border-gray-700/50">
+                    <span className="text-gray-400 text-sm">
+                        Showing <span className="text-white font-medium">{filteredCourses.length}</span> of{' '}
+                        <span className="text-white font-medium">{courses.length}</span> courses
+                    </span>
                 </div>
             </div>
-
-            {/* Results count */}
-            <p className="text-gray-400 text-sm">
-                Showing {filteredCourses.length} of {courses.length} courses
-            </p>
 
             {/* Course Grid */}
             {loading ? (
-                <div className="text-center text-gray-400 py-12">Loading courses...</div>
+                <div className="flex items-center justify-center py-20">
+                    <div className="animate-spin rounded-full h-12 w-12 border-t-2 border-b-2 border-indigo-500"></div>
+                </div>
             ) : filteredCourses.length === 0 ? (
-                <Card className="bg-gray-800 border-gray-700 text-center py-12">
-                    <HiBookOpen className="w-16 h-16 text-gray-600 mx-auto mb-4" />
-                    <p className="text-gray-400">No courses found</p>
-                </Card>
+                <div className="text-center py-20">
+                    <div className="w-24 h-24 mx-auto mb-6 bg-gray-700/50 rounded-full flex items-center justify-center">
+                        <HiBookOpen className="w-12 h-12 text-gray-500" />
+                    </div>
+                    <h3 className="text-xl font-semibold text-white mb-2">No courses found</h3>
+                    <p className="text-gray-400">Try adjusting your search or filter criteria</p>
+                </div>
             ) : (
                 <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
                     {filteredCourses.map((course) => (
-                        <Card
+                        <Link
                             key={course.id}
-                            className="bg-gray-800 border-gray-700 hover:border-indigo-500 transition-all hover:shadow-lg hover:shadow-indigo-500/10"
+                            to={`/courses/${course.id}`}
+                            className="group"
                         >
-                            {/* Course Image */}
-                            <div className="h-44 bg-gradient-to-br from-indigo-600 to-purple-600 rounded-lg mb-4 flex items-center justify-center overflow-hidden">
-                                {course.imageUrl ? (
-                                    <img
-                                        src={`http://localhost:3000${course.imageUrl}`}
-                                        alt={course.title}
-                                        className="w-full h-full object-cover"
-                                    />
-                                ) : (
-                                    <HiBookOpen className="w-16 h-16 text-white/40" />
-                                )}
-                            </div>
-
-                            {/* Categories */}
-                            {course.categories && course.categories.length > 0 && (
-                                <div className="flex flex-wrap gap-2 mb-2">
-                                    {course.categories.slice(0, 2).map((cat) => (
-                                        <Badge key={cat.id} color="purple" size="sm">
-                                            {cat.name}
-                                        </Badge>
-                                    ))}
+                            <div className="h-full bg-gray-800/50 backdrop-blur-sm rounded-2xl border border-gray-700/50 overflow-hidden hover:border-indigo-500/50 transition-all duration-300 hover:-translate-y-2 hover:shadow-xl hover:shadow-indigo-500/10">
+                                {/* Course Image */}
+                                <div className="relative h-48 overflow-hidden">
+                                    {course.imageUrl ? (
+                                        <img
+                                            src={`http://localhost:3000${course.imageUrl}`}
+                                            alt={course.title}
+                                            className="w-full h-full object-cover group-hover:scale-110 transition-transform duration-500"
+                                        />
+                                    ) : (
+                                        <div className="w-full h-full bg-gradient-to-br from-indigo-600 to-purple-600 flex items-center justify-center">
+                                            <HiBookOpen className="w-16 h-16 text-white/30" />
+                                        </div>
+                                    )}
+                                    {/* Price Badge */}
+                                    <div className="absolute top-4 right-4">
+                                        <span className={`px-3 py-1 rounded-full text-sm font-bold ${course.price > 0
+                                                ? 'bg-green-500/90 text-white'
+                                                : 'bg-indigo-500/90 text-white'
+                                            }`}>
+                                            {course.price > 0 ? `$${course.price}` : 'Free'}
+                                        </span>
+                                    </div>
                                 </div>
-                            )}
 
-                            {/* Title & Description */}
-                            <h3 className="text-lg font-semibold text-white mb-2 line-clamp-1">
-                                {course.title}
-                            </h3>
-                            <p className="text-gray-400 text-sm mb-4 line-clamp-2">
-                                {course.description || 'No description available'}
-                            </p>
+                                {/* Content */}
+                                <div className="p-6">
+                                    {/* Categories */}
+                                    {course.categories && course.categories.length > 0 && (
+                                        <div className="flex flex-wrap gap-2 mb-3">
+                                            {course.categories.slice(0, 2).map((cat) => (
+                                                <span
+                                                    key={cat.id}
+                                                    className="px-2 py-1 bg-indigo-500/10 text-indigo-400 text-xs rounded-md"
+                                                >
+                                                    {cat.name}
+                                                </span>
+                                            ))}
+                                        </div>
+                                    )}
 
-                            {/* Instructor */}
-                            <p className="text-gray-500 text-sm mb-4">
-                                by <span className="text-indigo-400">{course.instructor?.fullName}</span>
-                            </p>
+                                    {/* Title */}
+                                    <h3 className="text-lg font-semibold text-white mb-2 group-hover:text-indigo-400 transition-colors line-clamp-1">
+                                        {course.title}
+                                    </h3>
 
-                            {/* Footer */}
-                            <div className="flex items-center justify-between pt-4 border-t border-gray-700">
-                                <div className="flex items-center gap-4">
-                                    <span className="flex items-center text-green-400 font-bold">
-                                        <HiCurrencyDollar className="w-5 h-5 mr-1" />
-                                        {course.price > 0 ? `$${course.price}` : 'Free'}
-                                    </span>
-                                    <span className="flex items-center text-gray-400 text-sm">
-                                        <HiUserGroup className="w-4 h-4 mr-1" />
-                                        {course.enrolledStudents?.length || 0}
-                                    </span>
+                                    {/* Description */}
+                                    <p className="text-gray-400 text-sm mb-4 line-clamp-2">
+                                        {course.description || 'No description available'}
+                                    </p>
+
+                                    {/* Instructor */}
+                                    <div className="flex items-center gap-3 mb-4">
+                                        <div className="w-8 h-8 bg-gradient-to-br from-indigo-400 to-purple-400 rounded-full flex items-center justify-center text-white text-sm font-medium">
+                                            {course.instructor?.fullName?.charAt(0).toUpperCase()}
+                                        </div>
+                                        <span className="text-gray-300 text-sm">
+                                            {course.instructor?.fullName}
+                                        </span>
+                                    </div>
+
+                                    {/* Stats */}
+                                    <div className="flex items-center justify-between pt-4 border-t border-gray-700/50">
+                                        <div className="flex items-center gap-4">
+                                            <span className="flex items-center gap-1 text-gray-400 text-sm">
+                                                <HiUserGroup className="w-4 h-4" />
+                                                {course.enrolledStudents?.length || 0}
+                                            </span>
+                                            <span className="flex items-center gap-1 text-yellow-400 text-sm">
+                                                <HiStar className="w-4 h-4" />
+                                                4.8
+                                            </span>
+                                        </div>
+                                        <span className="text-indigo-400 text-sm font-medium group-hover:translate-x-1 transition-transform flex items-center gap-1">
+                                            View <HiArrowRight className="w-4 h-4" />
+                                        </span>
+                                    </div>
                                 </div>
-                                <Link to={`/courses/${course.id}`}>
-                                    <Button size="xs" color="purple">
-                                        View Details
-                                    </Button>
-                                </Link>
                             </div>
-                        </Card>
+                        </Link>
                     ))}
                 </div>
             )}

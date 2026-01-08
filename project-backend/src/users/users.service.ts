@@ -46,22 +46,41 @@ export class UsersService {
     }
 
     async update(id: string, updateUserDto: UpdateUserDto): Promise<User> {
-        const user = await this.usersRepository.findOne({ where: { id } });
+        const user = await this.usersRepository.findOne({
+            where: { id },
+            relations: ['role'],
+        });
 
         if (!user) {
             throw new NotFoundException(`User with ID ${id} not found`);
         }
 
+        // Build update object
+        const updateData: Partial<User> = {};
+
         // Hash password if it's being updated
         if (updateUserDto.password) {
             const saltRounds = 10;
-            updateUserDto.password = await bcrypt.hash(updateUserDto.password, saltRounds);
+            updateData.password = await bcrypt.hash(updateUserDto.password, saltRounds);
         }
 
-        Object.assign(user, updateUserDto);
-        await this.usersRepository.save(user);
+        // Add other fields
+        if (updateUserDto.fullName) {
+            updateData.fullName = updateUserDto.fullName;
+        }
+        if (updateUserDto.email) {
+            updateData.email = updateUserDto.email;
+        }
 
-        // Return user with role relation
+        // Handle roleId - use direct update query to avoid eager relation issues
+        if (updateUserDto.roleId !== undefined) {
+            updateData.roleId = updateUserDto.roleId;
+        }
+
+        // Use direct update query instead of save() to avoid eager relation issues
+        await this.usersRepository.update(id, updateData);
+
+        // Return user with updated role relation
         const result = await this.usersRepository.findOne({
             where: { id },
             relations: ['role'],

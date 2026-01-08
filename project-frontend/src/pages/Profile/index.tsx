@@ -1,7 +1,8 @@
 import { useState } from 'react';
+import { useNavigate } from 'react-router-dom';
 import { useForm } from 'react-hook-form';
 import { Card, Label, TextInput, Button, Alert, Badge } from 'flowbite-react';
-import { HiUser, HiMail, HiLockClosed, HiCheck, HiExclamationCircle, HiShieldCheck } from 'react-icons/hi';
+import { HiUser, HiMail, HiLockClosed, HiCheck, HiExclamationCircle, HiShieldCheck, HiArrowLeft } from 'react-icons/hi';
 import { useAuth } from '../../context';
 import { usersApi } from '../../api';
 
@@ -16,6 +17,7 @@ interface PasswordFormData {
 }
 
 export default function ProfilePage() {
+    const navigate = useNavigate();
     const { user } = useAuth();
     const [loading, setLoading] = useState(false);
     const [success, setSuccess] = useState<string | null>(null);
@@ -86,6 +88,12 @@ export default function ProfilePage() {
 
     return (
         <div className="max-w-2xl mx-auto space-y-6">
+            {/* Back Button */}
+            <Button color="gray" size="sm" onClick={() => navigate(-1)}>
+                <HiArrowLeft className="w-4 h-4 mr-2" />
+                Back
+            </Button>
+
             {/* Header */}
             <div className="text-center">
                 <div className="w-24 h-24 mx-auto mb-4 bg-gradient-to-br from-indigo-500 to-purple-500 rounded-full flex items-center justify-center">
@@ -118,8 +126,8 @@ export default function ProfilePage() {
                 <button
                     onClick={() => setActiveSection('info')}
                     className={`px-4 py-2 rounded-t-lg font-medium transition ${activeSection === 'info'
-                            ? 'bg-indigo-500 text-white'
-                            : 'text-gray-400 hover:text-white'
+                        ? 'bg-indigo-500 text-white'
+                        : 'text-gray-400 hover:text-white'
                         }`}
                 >
                     <HiUser className="w-4 h-4 inline mr-2" />
@@ -128,8 +136,8 @@ export default function ProfilePage() {
                 <button
                     onClick={() => setActiveSection('password')}
                     className={`px-4 py-2 rounded-t-lg font-medium transition ${activeSection === 'password'
-                            ? 'bg-indigo-500 text-white'
-                            : 'text-gray-400 hover:text-white'
+                        ? 'bg-indigo-500 text-white'
+                        : 'text-gray-400 hover:text-white'
                         }`}
                 >
                     <HiLockClosed className="w-4 h-4 inline mr-2" />

@@ -10,6 +10,16 @@ export { default as CourseDetailPage } from './Courses/CourseDetail';
 export { default as CourseFormPage } from './Courses/CourseForm';
 export { default as MyCoursesPage } from './Courses/MyCourses';
 
+// Lessons
+export { default as LessonFormPage } from './Lessons/LessonForm';
+
 // Profile
 export { default as ProfilePage } from './Profile';
+
+// Admin
+export { default as AdminDashboardPage } from './Admin';
+export { default as AdminUsersPage } from './Admin/Users';
+export { default as AdminCategoriesPage } from './Admin/Categories';
+
+
 
