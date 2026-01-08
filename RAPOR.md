@@ -1,6 +1,22 @@
 # Online Course Management System (OCMS) - Dönem Projesi Raporu
 
-> **Proje Canlı Bağlantısı:** **[BURAYA PROJE CANLI LİNKİ GELECEK]**
+---
+
+## Öğrenci Bilgileri
+
+| Bilgi | Değer |
+|-------|-------|
+| **Öğrenci Adı Soyadı** | Maide Karamanoğlu |
+| **Öğrenci Numarası** | 22253016 |
+| **Üniversite** | Pamukkale Üniversitesi |
+| **Fakülte** | Mühendislik Fakültesi |
+| **Bölüm** | Bilgisayar Mühendisliği |
+| **Ders Adı** | Web Tabanlı Teknolojiler|
+
+
+---
+
+> **Proje Canlı Bağlantısı:** **https://github.com/Maide-karamanoglu/WebProject**
 
 ---
 
