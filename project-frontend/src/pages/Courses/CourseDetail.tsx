@@ -251,8 +251,8 @@ export default function CourseDetailPage() {
                                 onClick={handleEnroll}
                                 disabled={enrolling}
                                 className={`px-8 py-3 rounded-xl font-semibold text-white transition-all transform hover:scale-105 ${isEnrolled
-                                        ? 'bg-gray-600 hover:bg-gray-500'
-                                        : 'bg-gradient-to-r from-indigo-500 to-purple-500 hover:from-indigo-600 hover:to-purple-600 shadow-lg shadow-indigo-500/25'
+                                    ? 'bg-gray-600 hover:bg-gray-500'
+                                    : 'bg-gradient-to-r from-indigo-500 to-purple-500 hover:from-indigo-600 hover:to-purple-600 shadow-lg shadow-indigo-500/25'
                                     }`}
                             >
                                 {enrolling ? (
@@ -305,10 +305,11 @@ export default function CourseDetailPage() {
                                 <h2 className="text-xl font-bold text-white">Course Curriculum</h2>
                             </div>
                             {canEdit && (
-                                <Link to={`/courses/${course.id}/lessons/create`}>
-                                    <Button size="sm" gradientDuoTone="purpleToBlue">
-                                        + Add Lesson
-                                    </Button>
+                                <Link
+                                    to={`/courses/${course.id}/lessons/create`}
+                                    className="px-4 py-2 text-sm font-medium text-white bg-gradient-to-r from-purple-500 to-blue-500 hover:from-purple-600 hover:to-blue-600 rounded-lg transition-all shadow-md hover:shadow-lg flex items-center gap-1"
+                                >
+                                    + Add Lesson
                                 </Link>
                             )}
                         </div>
